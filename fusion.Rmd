@@ -1,0 +1,97 @@
+---
+title: "Comparación visual de fusion de imagenes"
+author: "Jhonathan Aponte Saravia"
+date: "23/1/2021"
+output: html_document
+---
+```{r}
+# Librerías a cargar para el ejercio.
+library(sp)
+library(raster)
+library(ggplot2)
+library(rgdal)
+library(RStoolbox)
+############################################################
+# Importamos las bandas a la plataforma RStudio.
+#E:/Imagenes CBERS4A/ParaR
+setwd("E:/Imagenes CBERS4A/ParaR")
+
+files <- list.files(pattern='.sdat')
+files
+b0 <- raster("E:/Imagenes CBERS4A/ParaR/CBERS_4A_BAND0.sdat")
+b1 <- raster("E:/Imagenes CBERS4A/ParaR/CBERS_4A_BAND1.sdat")
+b2 <- raster("E:/Imagenes CBERS4A/ParaR/CBERS_4A_BAND2.sdat")
+b3 <- raster("E:/Imagenes CBERS4A/ParaR/CBERS_4A_BAND3.sdat")
+b4 <- raster("E:/Imagenes CBERS4A/ParaR/CBERS_4A_BAND4.sdat")
+
+#Características de los datos de las bandas multiespectrales, tamaño de pixel 8 metros.
+b1
+# Características de la banda Pancromática tamaño de pixel 2 metros. 
+b0
+#Integramos las bandas.
+bandas <- addLayer(b1,b2,b3,b4) 
+bandas
+# Presentamos la banda en la ventana.
+ggRGB(bandas,r=3,g=2,b=1,stretch = "lin") + ggtitle("Combinacion bandas 321") 
+
+
+# Generamos la extensión, primero en el eje "X" y luego en el eje "y".
+ventana <-extent(427000, 428500,8430250,8431000)
+ventana
+#Presentamos la imagen  en función de la ventana seleccionada.
+x11()
+ggRGB(bandas,r=3,g=2,b=1,stretch = "lin", ext= ventana)
+
+#Proceso de Panshapen (Fusión de bandas)
+#Consiste en corroborar cual de los métodos son los que revelan mejor desempeño la identificacion de objetos,
+#despues del proceso de panshapening mediante la viualización.
+
+# Convertir en bandas pancromaticas Utlizando el método de Broyey
+
+#panSharpen(img, pan, r, g, b, pc = 1, method = "brovey", norm = TRUE), 
+
+
+fbrovey <- panSharpen(bandas, b0, r = 3, g = 2, b = 1, method = "brovey")
+fbrovey
+
+# Presentamos la imagen en la ventana seleccionada.
+ggRGB(fbrovey, r=3,g=2,b=1, stretch = "lin") 
+# Presentamos la imagen en la ventana seleccionada.
+ggRGB(fbrovey, r=3,g=2,b=1, stretch = "lin", ext = ventana) + ggtitle("Pansharpening brovey")
+
+
+# Convertir en bandas pancromaticas Utlizando el método de pca
+
+#panSharpen(img, pan, r, g, b, pc = 1, method = "pca", norm = TRUE), 
+
+
+fpca <- panSharpen(bandas, b0, r = 4, g = 3, b = 2, method = "pca")
+fpca
+
+
+#Toda la imagen en la ventana
+ggRGB(fpca, r=3,g=2,b=1,stretch = "lin") 
+# Presentamos la imagen en la ventana seleccionada.
+
+ggRGB(fpca, r=3,g=2,b=1, stretch = "lin",ext = ventana) + ggtitle("Pansharpening PCA")
+
+######
+# Convertir en bandas pancromaticas Utlizando el método de ihs
+
+#panSharpen(img, pan, r, g, b, pc = 1, method = "pca", norm = TRUE), 
+
+
+fihs <- panSharpen(bandas, b0, r = 3, g = 2, b = 1, method = "ihs")
+fihs
+
+#Toda la imagen en la ventana
+ggRGB(fihs,r=3,g=2,b=1,stretch = "lin") 
+# Presentamos la imagen en la ventana seleccionada.
+
+ggRGB(fihs, r=3,g=2,b=1, stretch = "lin", ext = ventana) + ggtitle("Pansharpening ihs")
+
+
+
+```
+
+
